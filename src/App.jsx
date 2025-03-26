@@ -16,8 +16,8 @@ function App() {
   // Adjust QR code size for responsiveness.
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 400) {
-        setQrSize(window.innerWidth * 0.6);
+      if (window.innerWidth < 200) {
+        setQrSize(window.innerWidth * 0.9);
       } else {
         setQrSize(200);
       }
@@ -148,8 +148,8 @@ function App() {
   const qrContainerStyle = {
     display: "flex",
     flexDirection: "column",
+    width: "100%",
     alignItems: "center",
-    background: "#fff",
     padding: "20px",
     borderRadius: "4px",
   };
