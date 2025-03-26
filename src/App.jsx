@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 function App() {
   // State for form data, QR data, loading status, error, and countdown timer
   const [formData, setFormData] = useState({
@@ -145,7 +143,9 @@ function App() {
                 padding: '8px',
                 marginTop: '5px',
                 borderRadius: '4px',
-                border: '1px solid #ccc'
+                border: '1px solid #ccc',
+                background: '#fff', // Enforce light theme
+                color: '#000'       // Enforce light theme text color
               }}
             />
           </div>
@@ -162,7 +162,9 @@ function App() {
                 padding: '8px',
                 marginTop: '5px',
                 borderRadius: '4px',
-                border: '1px solid #ccc'
+                border: '1px solid #ccc',
+                background: '#fff', // Enforce light theme
+                color: '#000'       // Enforce light theme text color
               }}
             />
           </div>
