@@ -1,55 +1,62 @@
-import { useState, useEffect } from 'react';
-import QRCode from 'react-qr-code';
+import { useState, useEffect } from "react";
+import QRCode from "react-qr-code";
 
 function App() {
-  // State for form data, QR data, loading status, error, and countdown timer
+  // States for login data, QR session, loading, error, countdown, and QR code size.
   const [formData, setFormData] = useState({
-    emailOrUsername: '',
-    password: '',
+    emailOrUsername: "",
+    password: "",
   });
   const [qrData, setQrData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
+  const [qrSize, setQrSize] = useState(200);
 
-  // Handle input changes
+  // Adjust QR code size for responsiveness.
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 400) {
+        setQrSize(window.innerWidth * 0.6);
+      } else {
+        setQrSize(200);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Update form field values.
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submission
+  // Handle form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
-      // Login request (POST to login endpoint)
+      // Send login request.
       const loginResponse = await fetch(`/api/v2/auth/web2-auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
       });
+      if (!loginResponse.ok) throw new Error("Login failed");
 
-      if (!loginResponse.ok) {
-        throw new Error('Login failed');
-      }
-
-      // Request for QR session data (GET from qr-session endpoint)
+      // Request QR session data.
       const qrResponse = await fetch(`/api/v2/auth/qr-session`, {
-        method: 'GET',
-        credentials: 'include'
+        method: "GET",
+        credentials: "include",
       });
 
       if (!qrResponse.ok) {
-        throw new Error('Failed to fetch QR data');
+        throw new Error("Failed to fetch QR data");
       }
 
       const data = await qrResponse.json();
@@ -59,7 +66,6 @@ function App() {
 
       // After QR is displayed, delete cookies to log out the user.
       deleteAllCookies();
-      
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -68,21 +74,21 @@ function App() {
     }
   };
 
-  // Utility function to delete all cookies
+  // Delete all cookies.
   const deleteAllCookies = () => {
-    const cookies = document.cookie.split(';');
-    cookies.forEach(cookie => {
-      const eqPos = cookie.indexOf('=');
+    const cookies = document.cookie.split(";");
+    cookies.forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
       const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-      document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     });
   };
 
-  // Countdown timer effect
+  // Countdown timer effect.
   useEffect(() => {
     if (qrData && timeLeft > 0) {
       const timer = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
             return 0;
@@ -94,102 +100,99 @@ function App() {
     }
   }, [qrData, timeLeft]);
 
-  // Inline CSS styles
+  // Container styling: centers content with a light background.
   const containerStyle = {
-    display: 'flex',
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    minWidth: '100vw',
-    background: '#f0f0f0',
-    padding: '20px'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "20px",
+    background: "#f8f8f8",
+    minHeight: "100vh",
+    color: "#000",
   };
 
+  // Simplified form style (no extra box or shadow).
   const formStyle = {
-    width: '100%',
-    maxWidth: '400px',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    padding: '20px',
-    background: '#fff',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+    width: "100%",
+    maxWidth: "400px",
+    padding: "20px",
+    background: "#fff",
+    borderRadius: "4px",
+    marginBottom: "20px",
   };
 
+  // Input styling.
+  const inputStyle = {
+    width: "100%",
+    padding: "10px",
+    margin: "10px 0",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    background: "#fff",
+    color: "#000",
+  };
+
+  // Button styling.
+  const buttonStyle = {
+    width: "100%",
+    padding: "10px",
+    background: "#007bff",
+    border: "none",
+    borderRadius: "4px",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+  };
+
+  // QR code container style.
   const qrContainerStyle = {
-    textAlign: 'center',
-    background: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "4px",
   };
 
   return (
     <div style={containerStyle}>
-      {/* If no QR data, show the login form */}
-      {!qrData ? (
+      {!qrData && (
         <form onSubmit={handleSubmit} style={formStyle}>
-          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Login</h2>
-          <div style={{ marginBottom: '15px' }}>
-            <label>Email or Username:</label>
-            <input 
-              type="text"
-              name="emailOrUsername"
-              value={formData.emailOrUsername}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginTop: '5px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                background: '#fff', // Enforce light theme
-                color: '#000'       // Enforce light theme text color
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: '15px' }}>
-            <label>Password:</label>
-            <input 
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginTop: '5px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                background: '#fff', // Enforce light theme
-                color: '#000'       // Enforce light theme text color
-              }}
-            />
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <button type="submit" disabled={loading} style={{
-              padding: '10px 20px',
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: 'none',
-              backgroundColor: '#007bff',
-              color: '#fff',
-              cursor: 'pointer'
-            }}>
-              {loading ? 'Processing...' : 'Generate QR'}
-            </button>
-          </div>
-          {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '15px' }}>{error}</p>}
+          <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Login</h2>
+          <label>Email or Username:</label>
+          <input
+            type="text"
+            name="emailOrUsername"
+            value={formData.emailOrUsername}
+            onChange={handleChange}
+            required
+            style={inputStyle}
+          />
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            style={inputStyle}
+          />
+          <button type="submit" disabled={loading} style={buttonStyle}>
+            {loading ? "Processing..." : "Generate QR"}
+          </button>
+          {error && (
+            <p style={{ color: "red", textAlign: "center", marginTop: "10px" }}>
+              {error}
+            </p>
+          )}
         </form>
-      ) : (
+      )}
+      {/* Display QR code below the form if available */}
+      {qrData && (
         <div style={qrContainerStyle}>
-          <h2>Your QR Code</h2>
-          <QRCode value={JSON.stringify(qrData)} size={256} />
-          <div style={{ marginTop: '20px', fontSize: '18px' }}>
-            {timeLeft !== null && <p>Time remaining: {timeLeft} seconds</p>}
-          </div>
+          <h3>Your QR Code</h3>
+          <QRCode value={JSON.stringify(qrData)} size={qrSize} />
+          {timeLeft !== null && <p>Time remaining: {timeLeft} seconds</p>}
         </div>
       )}
     </div>
